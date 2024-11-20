@@ -13,8 +13,8 @@ class AdminController extends AbstractController {
 	private AdminModel $model;
 	//private ResponseController $response;
 
-	public function __construct(View $view, Response $response) {
-		parent::__construct($view, $response);
+	public function __construct(View $view) {
+		parent::__construct($view);
 		$this->model = new AdminModel();
 		$this->enforceRoleAccess(1);
 	}

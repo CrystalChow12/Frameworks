@@ -8,22 +8,26 @@ use Framework\Validator\Validator;
 use Framework\AbstractController;
 use Framework\Views\View;
 use Framework\Framework;
+use Framework\Response;
 
 class AuthController extends AbstractController {
 	private AuthModel $model;
+	private Response $response;
+
 
 	public function __construct(View $view) {
 		parent::__construct($view);
 		$this->model = new AuthModel();
+		$this->response = new Response($view);
 	}
 
-	public function show($errors = []) {
-		// AuthGuard::redirectIfAuthenticated();
-		$this->render('App/tpl/login.php', ['errors' => $errors]);
-	}
+	// public function show($errors = []) {
+	// 	// AuthGuard::redirectIfAuthenticated();
+	// 	$this->render('App/tpl/login.php', ['errors' => $errors]);
+	// }
 
 	public function showForm($errors = []) {
-		$this->render('App/tpl/register.php', ['errors' => $errors]);
+		$this->render('App/tpl/register.php', ['errors' => $errors]); //should i also encapsulate this in a response?
 	}
 
 	public function register() {
@@ -31,7 +35,9 @@ class AuthController extends AbstractController {
 
 		// check if the request method is post
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-			$this->showForm();
+			Validator::addError('request', 'Bad request method');
+			$errors = Validator::getErrors();
+			$this->response->requestError('App/tpl/register.php', $errors);
 			return;
 		}
 
@@ -71,7 +77,8 @@ class AuthController extends AbstractController {
 		if (!$isValid) {
 			//get the errors from the getValidator() classz
 			$errors = Validator::getErrors();
-			$this->render('App/tpl/register.php', ['errors' => $errors]);
+			//$this->render('App/tpl/register.php', ['errors' => $errors]);
+			$this->response->clientError('App/tpl/register.php', ['errors' => $errors]);
 			return;
 		}
 
@@ -117,16 +124,18 @@ class AuthController extends AbstractController {
 		if (!$isValid) {
 			//get the errors from the getValidator() class
 			$errors = Validator::getErrors();
-			$this->render('App/tpl/login.php', ['errors' => $errors]);
+			//$this->render('App/tpl/login.php', ['errors' => $errors]);
+			//$this->response->clientError('App/tpl/login.php', ['errors' => $errors]);
 			return;
 		}
 
 		//if no errors then login the user
-		// Establish a session using the Session class created.
+		
 		if (!$this->model->login($email, $password)) {
 			//echo 'Error authenticating user.';
 			$errors = Validator::getErrors();
-			$this->show($errors);
+			//$this->response->authError('App/tpl/login.php', ['errors' => $errors]);
+			//$this->show($errors);
 		} else {
 			echo 'User logged in successfully.';
 			AuthGuard::redirectIfAuthenticated();

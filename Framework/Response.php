@@ -1,7 +1,8 @@
 <?php 
-namespace Framework;
 
+namespace Framework;
 use Framework\Views\View;
+
 
 class Response {
     private View $view;
@@ -22,12 +23,20 @@ class Response {
         http_response_code($this->statusCode);
     }
     
-    public function errorResponse(string $path,array $errors) {
-
+    //this error response is for validation errors, such as wrong email or password mismatch 
+    public function clientError(string $path, array $errors) {
         $this->view->render($path, ['errors' => $errors]);
-        //set the status code to 400
-        http_response_code(400);
-        //$this->setCode(400);
+        http_response_code(422); 
     }
-    
+
+    public function authError(string $path, array $errors) {
+        $this->view->render($path, ['errors' => $errors]);
+        http_response_code(401);
+    }
+
+    //response is for when the request method is not correct
+    public function requestError(string $path, array $errors) {
+        $this->view->render($path, ['errors' => $errors]);
+        http_response_code(405);
+    }
 }
