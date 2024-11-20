@@ -4,21 +4,19 @@ namespace App\Controllers;
 
 use App\Guards\AuthGuard;
 use Framework\AbstractController;
-use Framework\ResponseController;
 use App\Models\AdminModel;
 use Framework\Validator\Validator;
 use Framework\Views\View;
+use Framework\Response;
 
 class AdminController extends AbstractController {
 	private AdminModel $model;
 	//private ResponseController $response;
 
-	public function __construct(View $view) {
-		parent::__construct($view);
+	public function __construct(View $view, Response $response) {
+		parent::__construct($view, $response);
 		$this->model = new AdminModel();
-		//$this->response = new ResponseController($view);
 		$this->enforceRoleAccess(1);
-
 	}
 
 	// public function index($data = []) {
@@ -117,7 +115,7 @@ class AdminController extends AbstractController {
 			//get the errors from the getValidator() class
 			$errors = Validator::getErrors();
 			// $this->render('App/tpl/admin_register.php', ['errors' => $errors]);
-			$this->response->errorResponse('App/tpl/admin_register.php',$errors);
+			//$this->response->errorResponse('App/tpl/admin_register.php',$errors);
 			return;
 		}
 

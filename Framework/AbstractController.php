@@ -3,14 +3,15 @@ namespace Framework;
 
 use App\Guards\AuthGuard;
 use Framework\Views\View;
+use Framework\ResponseController;
 
 abstract class AbstractController {
 	private View $view;
-	//protected ResponseController $response;
+	private Response $response;
 
-	public function __construct(View $view) {
+	public function __construct(View $view, Response $response) {
 		$this->view = $view;
-		$this->response = new ResponseController($view);
+		$this->response = $response;
 	}
 
 	protected function enforceRoleAccess(int $requiredRole) {

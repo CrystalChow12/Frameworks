@@ -2,7 +2,6 @@
 
 namespace Framework;
 use Framework\Framework;
-use Framework\Registry; 
 use PDO;
 
 abstract class BaseModel {
