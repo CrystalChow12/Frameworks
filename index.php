@@ -15,11 +15,11 @@ $framework = new Framework(dirname(__FILE__));
 $router = $framework->getInstance()->getRouter();
 
 //register
-$router->addRoutes('/register', 'AuthController', 'showForm', 'GET');
+$router->addRoutes('/register', 'AuthController', 'showRegisterForm', 'GET');
 $router->addRoutes('/register', 'AuthController', 'register', 'POST');
 
 // Authentication routes
-$router->addRoutes('/login', 'AuthController', 'show', 'GET');
+$router->addRoutes('/login', 'AuthController', 'showLoginForm', 'GET');
 $router->addRoutes('/login', 'AuthController', 'login', 'POST');
 $router->addRoutes('/logout', 'AuthController', 'logout', 'POST');
 

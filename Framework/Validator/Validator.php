@@ -127,6 +127,7 @@ class Validator {
 		Validator::$errors[$key] = $message;
 	}
 
+
 	public static function getErrors() {
 		return Validator::$errors;
 	}
@@ -134,5 +135,20 @@ class Validator {
 	//clear errors after use
 	public static function clearErrors() {
 		Validator::$errors = [];
+	}
+
+
+	//do the same thing for messages 
+	public static function addMessage(string $key, string $message) {
+		Validator::$messages[$key] = $message;
+	}
+
+	public static function getMessages() {
+		return Validator::$messages;
+	}
+
+	//clear messages after use
+	public static function clearMessages() {
+		Validator::$messages = [];
 	}
 }
