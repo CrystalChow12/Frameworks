@@ -25,11 +25,17 @@ class AuthController extends AbstractController {
 	// 	$this->render('App/tpl/login.php', ['errors' => $errors]);
 	// }
 
-	public function showForm($errors = []) {
+	public function showForm($errors = [],$statusCode=200) {
 		// View generating the html
 		$htmlcontent = $this->render('App/tpl/register.php', ['errors' => $errors]); 
+		$response = new Response($htmlcontent, $statusCode, ['Content-Type' => 'text/html; charset=UTF-8']);
+		$response->send();
+	}
 
-		$response = new Response($htmlcontent, 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+	public function loginForm($errors = [],$statusCode=200) {
+		// View generating the html
+		$htmlcontent = $this->render('App/tpl/login.php', ['errors' => $errors]);
+		$response = new Response($htmlcontent, $statusCode, ['Content-Type' => 'text/html; charset=UTF-8']);
 		$response->send();
 	}
 	
@@ -41,7 +47,7 @@ class AuthController extends AbstractController {
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 			Validator::addError('request', 'Bad request method');
 			$errors = Validator::getErrors();
-			$this->showForm($errors);
+			$this->showForm($errors, 405);
 			//$this->response->requestError('App/tpl/register.php', $errors);
 			return;
 		}
@@ -82,9 +88,7 @@ class AuthController extends AbstractController {
 		if (!$isValid) {
 			//get the errors from the getValidator() classz
 			$errors = Validator::getErrors();
-			$this->showForm($errors);
-			//$this->render('App/tpl/register.php', ['errors' => $errors]);
-			// $this->response->clientError('App/tpl/register.php', ['errors' => $errors]);
+			$this->showForm($errors,400);
 			return;
 		}
 
@@ -110,7 +114,12 @@ class AuthController extends AbstractController {
 		$isValid = true;
 
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-			$this->render('App/tpl/login.php');
+			Validator::addError('request', 'Bad request method');
+			$errors = Validator::getErrors();
+			$this->loginForm($errors,405);
+			
+			//$this->render('App/tpl/login.php', ['errors' => $errors]);
+		
 			return;
 		}
 
@@ -130,8 +139,7 @@ class AuthController extends AbstractController {
 		if (!$isValid) {
 			//get the errors from the getValidator() class
 			$errors = Validator::getErrors();
-			//$this->render('App/tpl/login.php', ['errors' => $errors]);
-			//$this->response->clientError('App/tpl/login.php', ['errors' => $errors]);
+			$this->loginForm($errors,400);
 			return;
 		}
 
@@ -140,8 +148,8 @@ class AuthController extends AbstractController {
 		if (!$this->model->login($email, $password)) {
 			//echo 'Error authenticating user.';
 			$errors = Validator::getErrors();
-			//$this->response->authError('App/tpl/login.php', ['errors' => $errors]);
-			//$this->show($errors);
+			$this->loginForm($errors,401);
+			
 		} else {
 			echo 'User logged in successfully.';
 			AuthGuard::redirectIfAuthenticated();

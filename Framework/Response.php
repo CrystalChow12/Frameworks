@@ -6,7 +6,8 @@ namespace Framework;
 class Response {
     //content, status and headers 
     private mixed $content = null;
-    private int $statusCode = 200; //successful by default
+    //private int $statusCode = 200; //successful by default
+    private int $statusCode; //successful by default
     private array $headers = [];
 
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
