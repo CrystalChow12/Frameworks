@@ -11,7 +11,6 @@ use Framework\Response;
 
 class AdminController extends AbstractController {
 	private AdminModel $model;
-	//private ResponseController $response;
 
 	public function __construct(View $view) {
 		parent::__construct($view);
@@ -19,11 +18,12 @@ class AdminController extends AbstractController {
 		$this->enforceRoleAccess(1);
 	}
 
-	// public function index($data = []) {
-	// 	//check if the user is logged in and if there is a session set
-	// 	$this->enforceRoleAccess(1);
-	// 	$this->render('App/tpl/admin_dashboard.php', ['data' => $data]);
-	// }
+
+	public function showForm($errors = [], $statusCode = 200) {
+		$htmlcontent = $this->render('App/tpl/admin_register.php', ['errors' => $errors]);
+		$response = new Response($htmlcontent, $statusCode, ['Content-Type' => 'text/html']);
+		$response->send();
+	}
 
 	public function index() {
 		//$this->enforceRoleAccess(1);
@@ -31,30 +31,32 @@ class AdminController extends AbstractController {
 		if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 			Validator::addError('httpd_method', 'The request is invalid.');
 			$errors = Validator::getErrors();
-			$this->showForm($errors);
+			$this->showForm($errors, 405);
 			return;
 		} else {
 			$statistics = $this->model->getStatistics();
-			$this->render('App/tpl/admin_dashboard.php', ['statistics' => $statistics]);
+			$htmlcontent = $this->render('App/tpl/admin_dashboard.php', ['statistics' => $statistics]);
+			$response = new Response($htmlcontent, 200, ['Content-Type' => 'text/html']);
+			$response->send();
 		}
 	}
 
-	public function showForm($errors = []) {
-		$this->render('App/tpl/admin_register.php', ['errors' => $errors]);
-	}
+	
 
 	public function getEmployees() {
 		if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 			Validator::addError('httpd_method', 'The request is invalid.');
 			$errors = Validator::getErrors();
-			$this->render('App/tpl/admin_users.php', ['errors' => $errors]);
+			$this->showForm($errors, 405);
 			return;
 		} else {
 			//save the returned result in a variable array
 			$users = $this->model->getAllEmployees();
 
 			//pass this to the view to be extracted
-			$this->render('App/tpl/admin_users.php', ['users' => $users]);
+			$htmlcontent = $this->render('App/tpl/admin_users.php', ['users' => $users]);
+			$response = new Response($htmlcontent, 200, ['Content-Type' => 'text/html']);
+			$response->send();
 		}
 	}
 
@@ -62,11 +64,13 @@ class AdminController extends AbstractController {
 		if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 			Validator::addError('httpd_method', 'The request is invalid.');
 			$errors = Validator::getErrors();
-			$this->render('App/tpl/admin_tasks.php', ['errors' => $errors]);
+			$this->showForm($errors, 405);
 			return;
 		} else {
 			$tasks = $this->model->getAllTasks();
-			$this->render('App/tpl/admin_tasks.php', ['tasks' => $tasks]);
+			$htmlcontent = $this->render('App/tpl/admin_tasks.php', ['tasks' => $tasks]);
+			$response = new Response($htmlcontent, 200, ['Content-Type' => 'text/html']);
+			$response->send();
 		}
 	}
 
@@ -114,27 +118,28 @@ class AdminController extends AbstractController {
 		if (!$isValid) {
 			//get the errors from the getValidator() class
 			$errors = Validator::getErrors();
-
-			// $this->render('App/tpl/admin_register.php', ['errors' => $errors]);
-			//$this->response->errorResponse('App/tpl/admin_register.php',$errors);
+			$this->showForm($errors, 400);
 			return;
 		}
+
 
 		//if no errors then register the user
 		$this->model->register($email, $username, $password, $role);
 		
 		Validator::$messages = ['User has been registered successfully.'];
-		
+
+		$messages = Validator::getMessages();
+
 		//render the page
-		//$this->render('App/tpl/admin_register.php', ['messages' => Validator::$messages]);
+		$this->showForm($messages, 201);
+		
 
 		//clear the errors
 		Validator::clearErrors();
 
 		//clear success message
 		Validator::$messages = [];
-
-		return new Response('User has been registered successfully.', 200, []);
+		
 	}
 
 	public function deleteUser($queryParams) {

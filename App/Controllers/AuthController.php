@@ -100,14 +100,16 @@ class AuthController extends AbstractController {
 		//if no errors then register the user
 		$this->model->register($email, $username, $password, $role);
 
-		//render the page
-		$this->render('App/tpl/login.php', ['messages' => Validator::$messages]);
-
 		//clear the errors
 		Validator::clearErrors();
 
-		//clear success message
-		Validator::$messages = [];
+
+		//render the page
+		//encapsulate this as well ?
+		$htmlcontent = $this->render('App/tpl/login.php');
+		$response = new Response($htmlcontent, 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+		$response->send();
+
 	}
 
 	public function login() {
