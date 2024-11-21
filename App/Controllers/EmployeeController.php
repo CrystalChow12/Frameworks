@@ -7,6 +7,7 @@ use Framework\AbstractController;
 use App\Models\EmployeeModel;
 use Framework\Validator\Validator;
 use Framework\Views\View;
+use Framework\Response;
 
 class EmployeeController extends AbstractController {
 	private EmployeeModel $model;
@@ -26,30 +27,43 @@ class EmployeeController extends AbstractController {
 		// } //if not redirect to login page
 	}
 
+	public function showDashboard($errors = [], $statusCode = 200) {
+		$htmlcontent = $this->render('App/tpl/employee_dashboard.php', ['errors' => $errors]);
+		$response = new Response($htmlcontent, $statusCode, ['Content-Type' => 'text/html']);
+		$response->send();
+	}
+
+
+
 	public function index() {
 		//$this->enforceRoleAccess(3);
 		if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 			Validator::addError('httpd_method', 'The request is invalid.');
 			$errors = Validator::getErrors();
-			$this->render('App/tpl/employee_dashboard.php', ['errors' => $errors]);
+			$this->showDashboard($errors, 405);
 			return;
 		} else {
 			$employeeId = $_SESSION['userId'];
 			$tasks = $this->model->getAllTasks($employeeId);
-			$this->render('App/tpl/employee_dashboard.php', ['tasks' => $tasks]);
+			$htmlcontent = $this->render('App/tpl/employee_dashboard.php', ['tasks' => $tasks]);
+			$response = new Response($htmlcontent, 200, ['Content-Type' => 'text/html']);
+			$response->send();
 		}
 	}
 
 	public function showForm($queryParams) {
 		$taskId = $queryParams['id'];
 		$specificTask = $this->model->getTaskById($taskId);
-		$this->render('App/tpl/edit_task.php', ['taskId' => $taskId, 'task' => $specificTask]); //this will work for rendering with the sent id
+		$htmlcontent = $this->render('App/tpl/edit_task.php', ['taskId' => $taskId, 'task' => $specificTask]); //this will work for rendering with the sent id
+		$response = new Response($htmlcontent, 200, ['Content-Type' => 'text/html']);
+		$response->send();
 	}
 
 	public function editTask($queryParams) {
 		$taskId = $queryParams['id'];
 
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			$this->showDashboard(405);
 			return;
 		}
 
