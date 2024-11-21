@@ -114,6 +114,7 @@ class AdminController extends AbstractController {
 		if (!$isValid) {
 			//get the errors from the getValidator() class
 			$errors = Validator::getErrors();
+
 			// $this->render('App/tpl/admin_register.php', ['errors' => $errors]);
 			//$this->response->errorResponse('App/tpl/admin_register.php',$errors);
 			return;
@@ -125,13 +126,15 @@ class AdminController extends AbstractController {
 		Validator::$messages = ['User has been registered successfully.'];
 		
 		//render the page
-		$this->render('App/tpl/admin_register.php', ['messages' => Validator::$messages]);
+		//$this->render('App/tpl/admin_register.php', ['messages' => Validator::$messages]);
 
 		//clear the errors
 		Validator::clearErrors();
 
 		//clear success message
 		Validator::$messages = [];
+
+		return new Response('User has been registered successfully.', 200, []);
 	}
 
 	public function deleteUser($queryParams) {

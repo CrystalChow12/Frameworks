@@ -1,42 +1,56 @@
 <?php 
 
 namespace Framework;
-use Framework\Views\View;
 
 
 class Response {
-    private View $view;
-    private $statusCode; //200 or 404 or 500
-    private $data; //data pulled from the database
-    private $message; //success or failed 
-    //private $errors = []; //errors //errors pulled from the validator
+    //content, status and headers 
+    private mixed $content = null;
+    private int $statusCode = 200; //successful by default
+    private array $headers = [];
 
-    public function __construct(View $view) {
-        $this->view = $view;
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+    // Picked the most used ones
+    private const HTTP_RESPONSE_MESSAGES = [
+        200 => 'OK',
+        201 => 'Created',
+        401 => 'Unauthorized',
+        403 => 'Forbidden',
+        404 => 'Not Found',
+        500 => 'Internal Server Error',
+    ];
+
+    public function __construct($content, $statusCode, $headers){
+        $this->content = $content;
+        $this->statusCode = $statusCode;
+        $this->headers = $headers;
     }
-    
-    // $errors = Validator::getErrors();
-	// $this->render('App/tpl/admin_register.php', ['errors' => $errors]);
 
-    public function setCode($code) {
-        $this->statusCode = $code;
+    // https://www.php.net/manual/en/function.header.php
+    private function sendHeaders() {
+        if (headers_sent()) {
+            return;
+        }
+
         http_response_code($this->statusCode);
+
+        if(isset(self::HTTP_RESPONSE_MESSAGES[$this->statusCode])) {
+            header("HTTP/1.1 {$this->statusCode} " . self::HTTP_RESPONSE_MESSAGES[$this->statusCode]);
+        }
+
+        foreach ($this->headers as $name => $value) {
+            header("$name: $value");
+        }
+    }
+
+
+    public function send() {
+
+        $this->sendHeaders();
+
+        if ($this->content !== null) {
+            echo $this->content;
+        }
     }
     
-    //this error response is for validation errors, such as wrong email or password mismatch 
-    public function clientError(string $path, array $errors) {
-        $this->view->render($path, ['errors' => $errors]);
-        http_response_code(422); 
-    }
-
-    public function authError(string $path, array $errors) {
-        $this->view->render($path, ['errors' => $errors]);
-        http_response_code(401);
-    }
-
-    //response is for when the request method is not correct
-    public function requestError(string $path, array $errors) {
-        $this->view->render($path, ['errors' => $errors]);
-        http_response_code(405);
-    }
 }

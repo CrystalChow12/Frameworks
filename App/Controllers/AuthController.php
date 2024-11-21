@@ -12,13 +12,12 @@ use Framework\Response;
 
 class AuthController extends AbstractController {
 	private AuthModel $model;
-	private Response $response;
 
 
 	public function __construct(View $view) {
 		parent::__construct($view);
 		$this->model = new AuthModel();
-		$this->response = new Response($view);
+		
 	}
 
 	// public function show($errors = []) {
@@ -27,8 +26,13 @@ class AuthController extends AbstractController {
 	// }
 
 	public function showForm($errors = []) {
-		$this->render('App/tpl/register.php', ['errors' => $errors]); //should i also encapsulate this in a response?
+		// View generating the html
+		$htmlcontent = $this->render('App/tpl/register.php', ['errors' => $errors]); 
+
+		$response = new Response($htmlcontent, 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+		$response->send();
 	}
+	
 
 	public function register() {
 		$isValid = true;
@@ -37,7 +41,8 @@ class AuthController extends AbstractController {
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 			Validator::addError('request', 'Bad request method');
 			$errors = Validator::getErrors();
-			$this->response->requestError('App/tpl/register.php', $errors);
+			$this->showForm($errors);
+			//$this->response->requestError('App/tpl/register.php', $errors);
 			return;
 		}
 
@@ -77,8 +82,9 @@ class AuthController extends AbstractController {
 		if (!$isValid) {
 			//get the errors from the getValidator() classz
 			$errors = Validator::getErrors();
+			$this->showForm($errors);
 			//$this->render('App/tpl/register.php', ['errors' => $errors]);
-			$this->response->clientError('App/tpl/register.php', ['errors' => $errors]);
+			// $this->response->clientError('App/tpl/register.php', ['errors' => $errors]);
 			return;
 		}
 

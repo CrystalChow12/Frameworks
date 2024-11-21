@@ -24,7 +24,8 @@ class View {
 		include $templatePath;
 		$content = ob_get_clean();
 
-		echo $content;
+		//echo $content;
+		return $content;
 	}
 
 	public function escape($value): string {
