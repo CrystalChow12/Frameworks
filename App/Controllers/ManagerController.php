@@ -6,6 +6,7 @@ use Framework\AbstractController;
 use App\Models\ManagerModel;
 use Framework\Validator\Validator;
 use Framework\Views\View;
+use Framework\Response;
 
 class ManagerController extends AbstractController {
 	private ManagerModel $model;
@@ -29,21 +30,32 @@ class ManagerController extends AbstractController {
 	// 	$this->render('App/tpl/manager_dashboard.php');
 	// }
 
-	public function taskForm($errors = []) {
+	public function taskForm($errors = [], $statusCode = 200) {
 		$users = $this->model->getAllEmployees();
-		$this->render('App/tpl/create_task.php', ['users' => $users, 'errors' => $errors]);
+		$htmlcontent = $this->render('App/tpl/create_task.php', ['users' => $users, 'errors' => $errors]);
+		$response = new Response($htmlcontent, $statusCode, ['Content-Type' => 'text/html']);
+		$response->send();
+	}
+
+	//can handle errors or data 
+	public function showDashboard($data = [], $statusCode = 200) {
+		$htmlcontent = $this->render('App/tpl/manager_dashboard.php', ['data' => $data]);
+		$response = new Response($htmlcontent, $statusCode, ['Content-Type' => 'text/html']);
+		$response->send();
 	}
 
 	public function viewTasks() {
 		if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 			Validator::addError('httpd_method', 'The request is invalid.');
 			$errors = Validator::getErrors();
-			$this->render('App/tpl/manager_dashboard.php', ['errors' => $errors]);
+			$this->showDashboard($errors, 405);
+			//$this->render('App/tpl/manager_dashboard.php', ['errors' => $errors]);
 			return;
 		} else {
 			$managerId = $_SESSION['userId'];
 			$tasks = $this->model->getAllTasks($managerId);
-			$this->render('App/tpl/manager_dashboard.php', ['tasks' => $tasks]);
+			$this->showDashboard($tasks, 200);
+			//$this->render('App/tpl/manager_dashboard.php', ['tasks' => $tasks]);
 		}
 	}
 
@@ -53,7 +65,7 @@ class ManagerController extends AbstractController {
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 			Validator::addError('httpd_method', 'The request is invalid.');
 			$errors = Validator::getErrors();
-			$this->taskForm($errors);
+			$this->taskForm($errors, 405);
 			return;
 		}
 
@@ -69,27 +81,30 @@ class ManagerController extends AbstractController {
 		if (!$isValid) {
 			Validator::addError('invalid_data', 'Please fill in all the required fields.');
 			$errors = Validator::getErrors();
-			$this->taskForm($errors);
+			$this->taskForm($errors, 400);
 			return;
 		}
 
 		$this->model->assignTasks($assigned_to, $created_by, $due_date, $description);
-		$this->taskForm();
+		$this->taskForm(); //maybe change this too 
 
 		Validator::clearErrors();
 	}
 
-	public function showForm($queryParams) {
+	public function showForm($queryParams, $statusCode = 200) {
 		$taskId = $queryParams['id'];
 		$users = $this->model->getAllEmployees();
 		$specificTask = $this->model->getTaskById($taskId);
-		$this->render('App/tpl/manager_editTask.php', ['taskId' => $taskId, 'users' => $users, 'task' => $specificTask]); //this will work for rendering with the sent id
+		$htmlcontent = $this->render('App/tpl/manager_editTask.php', ['taskId' => $taskId, 'users' => $users, 'task' => $specificTask]); //this will work for rendering with the sent id
+		$response = new Response($htmlcontent, $statusCode, ['Content-Type' => 'text/html']);
+		$response->send();
 	}
 
 	public function editTask($queryParams) {
 		$taskId = $queryParams['id'];
 
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			$this->showForm($queryParams, 405);
 			return;
 		}
 
