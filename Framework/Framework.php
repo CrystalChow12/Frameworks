@@ -9,7 +9,7 @@ use Exceptions\RouteNotFoundException;
 use Framework\Service\Database;
 use Framework\SessionManager;
 
-class Framework {
+final class Framework {
 	public static string $ROOTDIR;
 
 	private Router $router;
@@ -26,7 +26,7 @@ class Framework {
 	public function __construct($rootPath) {
 		self::$ROOTDIR = $rootPath;
 		self::$instance = $this;
-		$this->database = new Database('localhost', 'root', 'chowbird', 'task_management_system');
+		$this->database = new Database();
 		$this->view = new View();
 		$this->router = new Router($this->view);
 		$this->session = new SessionManager(); 

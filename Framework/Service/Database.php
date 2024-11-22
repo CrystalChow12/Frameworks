@@ -4,8 +4,13 @@ namespace Framework\Service;
 
 use PDO;
 use PDOException;
+use Config\Config;
 
 class Database {
+
+
+
+	
 	private string $host = 'localhost';
 	private string $user = 'root';
 	private string $password = 'chowbird';
@@ -13,14 +18,16 @@ class Database {
 
 	private ?PDO $connection = null;
 
-	public function __construct($host, $user, $password, $database) {
-		$this->host = $host;
-		$this->user = $user;
-		$this->password = $password;
-		$this->database = $database;
+	public function __construct() {
+		$this->host = DB_HOST;
+		$this->user = DB_USER;
+		$this->password = DB_PASSWORD;
+		$this->database = DB_NAME;
 
 		$this->connect();
 	}
+
+	
 
 	protected function connect() {
 		try {

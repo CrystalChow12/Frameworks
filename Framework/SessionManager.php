@@ -2,7 +2,7 @@
 
 namespace Framework;
 
-class SessionManager {
+class SessionManager implements SessionInterface {
 
     public function start() { //ensures there is ONE unique session PER user
         if (session_status() == PHP_SESSION_NONE){ //check to see if there is a session 

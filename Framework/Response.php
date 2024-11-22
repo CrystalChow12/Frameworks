@@ -3,7 +3,7 @@
 namespace Framework;
 
 
-class Response {
+final class Response {
     //content, status and headers 
     private mixed $content = null;
     //private int $statusCode = 200; //successful by default

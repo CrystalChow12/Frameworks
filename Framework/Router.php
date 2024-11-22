@@ -5,7 +5,7 @@ namespace Framework;
 use Framework\Views\View;
 use Exceptions\RouteNotFoundException;
 
-class Router {
+final class Router {
 	private array $routes = [];
 	private View $view;
 	private string $controllerNamespace = 'App\\Controllers\\';

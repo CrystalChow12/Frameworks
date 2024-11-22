@@ -8,6 +8,7 @@ error_reporting(E_ALL);
 
 use Framework\Framework;
 
+require_once 'Config/config.php';
 require_once 'autoloader.php';
 
 $framework = new Framework(dirname(__FILE__));
