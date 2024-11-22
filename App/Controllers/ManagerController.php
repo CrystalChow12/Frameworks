@@ -86,7 +86,7 @@ class ManagerController extends AbstractController {
 		}
 
 		$this->model->assignTasks($assigned_to, $created_by, $due_date, $description);
-		$this->taskForm(); //maybe change this too 
+		$this->taskForm(200);  
 
 		Validator::clearErrors();
 	}

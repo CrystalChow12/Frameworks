@@ -3,8 +3,15 @@
 namespace Framework\Views;
 
 use Framework\Framework;
+use Framework\Views\TemplateEngine as TemplateEngine;
 
-class View {
+final class View {
+	private TemplateEngine $templateEngine;
+
+	public function __construct() {
+		$this->templateEngine = new TemplateEngine();
+	}
+
 	public function render(string $template, array $data = []) {
 		// Construct the full path to the template file
 		$templatePath =
@@ -18,11 +25,7 @@ class View {
 			return $this->escape($value);
 		};
 
-		extract($data);
-
-		ob_start();
-		include $templatePath;
-		$content = ob_get_clean();
+		$content = $this->templateEngine->parseData($templatePath, $data);
 
 		//echo $content;
 		return $content;
