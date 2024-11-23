@@ -8,6 +8,7 @@ use App\Models\AdminModel;
 use Framework\Validator\Validator;
 use Framework\Views\View;
 use Framework\Response;
+use Framework\Views\TemplateEngine;
 
 class AdminController extends AbstractController {
 	private AdminModel $model;
