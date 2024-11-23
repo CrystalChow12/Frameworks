@@ -108,7 +108,7 @@ class AuthModel extends BaseModel {
 	}
 
 
-	//api controller functions 
+	/*************************** API CONTROLLER FUNCTIONS *********************************************************************************************** */
 	public function checkUser(string $email, string $password) {
 		try {
 			$query = 'SELECT Users.id, Users.email, Users.username, Users.password, Roles.id AS role_id
@@ -136,7 +136,7 @@ class AuthModel extends BaseModel {
  
 	public function tokenExists($userId){
 		try {
-			$query = 'SELECT UserToken.token as token, UserToken.createdAt as dateCreated, Usertoken.expires as expiryDate FROM UserToken WHERE UserToken.userId = ?';
+			$query = 'SELECT UserToken.token , UserToken.dateCreated, Usertoken.expiryDate FROM UserToken WHERE UserToken.userId = ?';
 			$stmt = $this->db->prepare($query);
 			$stmt->execute([$userId]);
 			$token = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -160,6 +160,20 @@ class AuthModel extends BaseModel {
 		} 
 		return false; 
 	}
+	
+	public function insertToken($token, $userId) {
+		$dateCreated = date('Y-m-d H:i:s');
+		$expiryDate = date('Y-m-d H:i:s', strtotime('+1 day', strtotime($dateCreated))); //set to only last a day 
 
+		try {
+			$query = 'INSERT INTO UserToken (userId,token, dateCreated, expiryDate) VALUES (?,?,?,?);';
+			$stmt = $this->db->prepare($query);
+			$stmt->execute([$userId,$token,$dateCreated,$expiryDate]); 
+			return true; 
+		}	catch (PDOException $e){
+			echo "Error inserting token: " . $e->getMessage();
+			return false; 
+		}
+	}
 		
 }
