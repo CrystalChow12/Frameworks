@@ -38,7 +38,7 @@ class ApiController extends AbstractController {
     public function showLoginForm($errors = [],$statusCode=200) {
 			// View generating the html
 			$htmlcontent = $this->render('App/tpl/login.php', ['errors' => $errors]);
-			$response = new Response($htmlcontent, $statusCode, ['Content-Type' => 'text/html; charset=UTF-8']);
+			$response = new Response($htmlcontent, $statusCode, ['Content-Type' => 'application/json; charset=UTF-8']);
 			$response->send();
 	}
 
@@ -115,7 +115,7 @@ class ApiController extends AbstractController {
 			$token = $this->generateToken();
 			$this->model->insertToken($token, $userId);
 			//log in the user
-			$response = new Response('User logged in successfully.', 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+			$response = new Response('User logged in successfully.', 200, ['Content-Type' => 'json/xml; charset=UTF-8']);
 			$response->send();
 			AuthGuard::redirectIfAuthenticated();
 			return;
@@ -129,14 +129,14 @@ class ApiController extends AbstractController {
 				$this->model->insertToken($token, $userId);
 
 				//log in the user
-				$response = new Response('User logged in successfully.', 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+				$response = new Response('User logged in successfully.', 200, ['Content-Type' => 'application/json; charset=UTF-8']);
 				$response->send();
 				AuthGuard::redirectIfAuthenticated();
 
 				return;
 			} else {
 				//token valid, log in user 
-				$response = new Response('User logged in successfully.', 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+				$response = new Response('User logged in successfully.', 200, ['Content-Type' => 'application/json; charset=UTF-8']);
 				$response->send();
 				AuthGuard::redirectIfAuthenticated();
 				return;

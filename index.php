@@ -63,4 +63,7 @@ $router->addRoutes('/employee/tasks/edit', 'EmployeeController', 'editTask', 'PO
 // Error Routes
 $router->addRoutes('/unauthorized', 'UnauthorizedController', 'index', 'GET');
 
+//api routes 
+$router->addRoutes('/api/login', 'ApiController', 'login', 'POST');
+
 $framework->run();
