@@ -65,5 +65,6 @@ $router->addRoutes('/unauthorized', 'UnauthorizedController', 'index', 'GET');
 
 //api routes 
 $router->addRoutes('/api/login', 'ApiController', 'login', 'POST');
+$router->addRoutes('/api/me', 'ApiController', 'me', 'GET');
 
 $framework->run();

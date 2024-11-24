@@ -8,6 +8,7 @@ use PDOException;
 use Exception;
 use Framework\Validator\Validator;
 use Framework\Framework;
+use Datetime;
 
 class ApiModel extends BaseModel {
 
@@ -53,15 +54,29 @@ class ApiModel extends BaseModel {
 		}
 	}
 
-	public function validateToken($expiryDate){
-		//convert $expiryDate from datetime to date 
-		$expiryDate = date_format($expiryDate,"Y-m-d"); 
-		$currentDate = date("Y-m-d"); 
-		if ($expiryDate > $currentDate) { //if the expiry date is more than the current date then the token is valid
-			return true; //token 
-		} 
-		return false; 
-	}
+	public function validateToken($token) {
+		try {
+				// Query to check if token exists and is valid
+				$query = 'SELECT expiryDate FROM UserToken WHERE token = ?';
+				$stmt = $this->db->prepare($query);
+				$stmt->execute([$token]);
+				$result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+				if (!$result) {
+						return false;
+				}
+
+				// Convert database timestamp to DateTime
+				$expiryDate = new DateTime($result['expiryDate']);
+				$currentDate = new DateTime();
+
+				// Compare dates
+				return $expiryDate > $currentDate;
+		} catch (PDOException $e) {
+				error_log('Error validating token: ' . $e->getMessage());
+				return false;
+		}
+}
 	
 	public function insertToken($token, $userId) {
 		$dateCreated = date('Y-m-d H:i:s');

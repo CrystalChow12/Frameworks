@@ -2,18 +2,16 @@
 
 namespace App\Controllers;
 
-use App\Guards\AuthGuard;
 use App\Models\ApiModel;
-use App\Models\AuthModel;
 use Framework\Validator\Validator;
 use Framework\AbstractController;
 use Framework\Views\View;
-use Framework\Framework;
 use Framework\Response;
 
 
 class ApiController extends AbstractController {
     private ApiModel $model;
+		private $token;
 
 
 	public function __construct(View $view) {
@@ -21,7 +19,7 @@ class ApiController extends AbstractController {
 		$this->model = new ApiModel();
     }
 
-		/*
+			/*
 		1. check if user exists in Users table 
 		2. if user exists, then check to see if they have a token
 		3. if they have a token, log in 
@@ -34,12 +32,47 @@ class ApiController extends AbstractController {
 		2. insert the token 
 		*/
 
+		/* API DOES NOT RENDER PAGE */
 
-    public function showLoginForm($errors = [],$statusCode=200) {
-			// View generating the html
-			$htmlcontent = $this->render('App/tpl/login.php', ['errors' => $errors]);
-			$response = new Response($htmlcontent, $statusCode, ['Content-Type' => 'application/json; charset=UTF-8']);
-			$response->send();
+		private function setCookie(string $token) {
+			setcookie('session', $token,
+			[
+				'path' => '/',
+			]);
+		}
+
+		private function checkAuth() {
+			
+			if (isset($_COOKIE['session'])) {
+				$token = $_COOKIE['session'];
+			} else {
+				$token = null;
+			}
+		
+
+			 if (!$token) {
+				$this->sendResponse([
+					'success' => false,
+					'message' => 'No token provided',
+				], 401);
+				return false;
+			 }
+
+			 if (!$this->model->validateToken($token)) {
+				$this->sendResponse([
+					'success' => false,
+					'message' => 'Invalid token'
+				], 401);
+				return false;
+			 }
+
+			return true;
+		}
+
+	public function sendResponse($data, $statusCode) {
+		$jsonContent = json_encode($data);
+		$response = new Response($jsonContent, $statusCode, ['Content-Type' => 'application/json; charset=UTF-8']); 
+		$response->send(); 
 	}
 
 	public function userExists($username, $password) {
@@ -51,6 +84,26 @@ class ApiController extends AbstractController {
 		return $userId;
     }
 
+		public function validateLoginCredentials(array $data) {
+			if (!isset($data['email'], $data['password'])) {
+				Validator::addError('request', 'Missing required fields');
+				return false;
+			}
+
+			if (Validator::isEmpty($data['email']) || Validator::isEmpty($data['password'])) {
+				Validator::addError('credentials', 'Email and password are required');
+				return false;
+			}
+
+			if (!Validator::validEmail($data['email'])) {
+				Validator::addError('email', 'Invalid email format');
+				return false;
+			}
+
+			return true;
+		}
+		
+
 	public function tokenExists($userId){
 		if (!$this->model->tokenExists($userId)) {
 			return false;
@@ -60,89 +113,111 @@ class ApiController extends AbstractController {
 	}
 
 
+
     public function generateToken() {
 		$token = bin2hex(random_bytes(32));
 		return $token;
     }
+
+		private function validateToken($userId) {
+			if (!$this->tokenExists($userId)){
+				//insert token 
+				$token = $this->generateToken();
+				$this->model->insertToken($token, $userId);
+				$this->setCookie($token); 
+				$this->sendResponse(
+					['success' => true, 'message' => 'User logged successfully through API'],
+					200);
+				return; 
+			}
+
+			$token = $this->tokenExists($userId);
+			$expiryDate = $token['expiryDate'];
+
+			if (!$this->model->validateToken($expiryDate)) {
+				$token = $this->generateToken(); //generate a new one 
+				$this->model->insertToken($token, $userId);
+				//log in the user
+				$this->setCookie($token);
+				$this->sendResponse(
+					['success' => true, 'message' => 'User logged successfully through API'], 
+					200);
+
+				return;
+			}
+			//if its valid, then log in user and set cookie 
+			 $this->setCookie($token);
+			 $this->sendResponse(['success' => true, 'message' => 'User logged successfully through API'], 200); 
+			 return;
+		}
+
+		public function handleAuth(array $userData) {
+			$userId = $userData['userId'];
+
+			$this->validateToken($userId); 
+			//$tokenData = $this->tokenExists($userId);
+			
+			// if (!$tokenData) {
+			// 	$token = $this->generateToken();
+			// 	$this->model->insertToken($token, $userId);
+			// 	//log in the user
+			// 	$this->setCookie($token);
+			// 	$this->sendResponse(['success' => true, 'message' => 'User logged successfully through API'], 200);
+			// 	return;
+			// } else {
+			// 	$this->validateToken($userId);
+			// }
+		}
 	
 
     public function login() {
-		$isValid = true;
-
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 			Validator::addError('request', 'Bad request method');
 			$errors = Validator::getErrors();
-			$this->showLoginForm($errors,405);
-			return;
+			$this->sendResponse($errors, 405); 
 		}
 
 		//get the data from the request
-		$email = $_POST['email'];
-		$password = $_POST['password'];
+		$input = file_get_contents('php://input');
+		$data = json_decode($input, true);
+		$email = $data['email'];
+		$password = $data['password'];
+		$credentials= ['email' => $email, 'password' => $password];
 
-		//validate
-		if (Validator::isEmpty($email) || Validator::isEmpty($password)) {
-			$isValid = false;
-		}
-
-		if (Validator::validEmail($email) === false) {
-			$isValid = false;
-		}
-
-		if (!$isValid) {
-			//get the errors from the getValidator() class
-			$errors = Validator::getErrors();
-			$this->showLoginForm($errors,400);
-			return;
-		}
-
-		//check if the user exists
-		if (!$this->userExists($email, $password)) {
-			Validator::addError('invalid_credentials', 'Invalid credentials');
-			$errors = Validator::getErrors();
-			$this->showLoginForm($errors, 401);
+		//validate username and pw 
+		if (!$this->validateLoginCredentials($credentials)) {
+			$this->sendResponse(['success'=>false, 'message' => Validator::getErrors()],400);
 			return; 
 		}
 
-		
+
+		//check if the user exists
+		if (!$this->userExists($email, $password)) {
+			Validator::addError('message', 'Invalid credentials');
+			$errors = Validator::getErrors(); 
+			$this->sendResponse(['success' => false, 'message' => $errors], 401);
+			return; 
+		}
+
 		// clear the errors
 		Validator::clearErrors();
 
-		//check if the token exists
+		//handle the auth FINALLY 
 		$userId = $this->userExists($email, $password);
-		if (!$this->tokenExists($userId)) {
-			//generate a token
-			$token = $this->generateToken();
-			$this->model->insertToken($token, $userId);
-			//log in the user
-			$response = new Response('User logged in successfully.', 200, ['Content-Type' => 'json/xml; charset=UTF-8']);
-			$response->send();
-			AuthGuard::redirectIfAuthenticated();
-			return;
-		} else {
-			//validate the token 
-			$token = $this->tokenExists($userId);
-			$expiryDate = $token['expiryDate'];
-			
-			if (!$this->model->validateToken($expiryDate)) { //if  token expired, insert a new one
-				$token = $this->generateToken();
-				$this->model->insertToken($token, $userId);
-
-				//log in the user
-				$response = new Response('User logged in successfully.', 200, ['Content-Type' => 'application/json; charset=UTF-8']);
-				$response->send();
-				AuthGuard::redirectIfAuthenticated();
-
-				return;
-			} else {
-				//token valid, log in user 
-				$response = new Response('User logged in successfully.', 200, ['Content-Type' => 'application/json; charset=UTF-8']);
-				$response->send();
-				AuthGuard::redirectIfAuthenticated();
-				return;
-			}
-		}
+		$credentials["userId"] = $userId;
+		$this->handleAuth($credentials);
 	}
 
+
+	public function me() {
+		if (!$this->checkAuth()) {
+			return;
+		}
+
+		$this->sendResponse([
+			'success' => true,
+			'message' => 'this worked lol ૮ ˶ᵔ ᵕ ᵔ˶ ა',
+		], 200);
+	}
     
 }
