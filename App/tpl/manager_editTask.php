@@ -10,7 +10,7 @@
 
   <body class="bg-gray-100">
     <div class="flex h-screen">
-    <?php include 'partials/empSidebar.php'; ?>
+    <?php include 'partials/manSidebar.php'; ?>
 
       <div class="flex-1 flex flex-col overflow-hidden">
         <?php include 'partials/header.php'; ?>

@@ -38,7 +38,7 @@ class ManagerController extends AbstractController {
 	}
 
 	//can handle errors or data 
-	public function showDashboard($data = [], $statusCode = 200) {
+	public function showDashboard($data, $statusCode = 200) {
 		$htmlcontent = $this->render('App/tpl/manager_dashboard.php', ['data' => $data]);
 		$response = new Response($htmlcontent, $statusCode, ['Content-Type' => 'text/html']);
 		$response->send();
@@ -48,13 +48,21 @@ class ManagerController extends AbstractController {
 		if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 			Validator::addError('httpd_method', 'The request is invalid.');
 			$errors = Validator::getErrors();
-			$this->showDashboard($errors, 405);
+			//$this->showDashboard($errors, 405);
+			$htmlcontent = $this->render('App/tpl/manager_dashboard.php', ['errors' => $errors]);
+			$response = new Response($htmlcontent, 405, ['Content-Type' => 'text/html']);
+			$response->send();
+			return;
+
 			//$this->render('App/tpl/manager_dashboard.php', ['errors' => $errors]);
 			return;
 		} else {
 			$managerId = $_SESSION['userId'];
 			$tasks = $this->model->getAllTasks($managerId);
-			$this->showDashboard($tasks, 200);
+			$htmlcontent = $this->render('App/tpl/manager_dashboard.php', ['tasks' => $tasks]);
+			$response = new Response($htmlcontent, 200, ['Content-Type' => 'text/html']);
+			$response->send();
+			return;
 			//$this->render('App/tpl/manager_dashboard.php', ['tasks' => $tasks]);
 		}
 	}

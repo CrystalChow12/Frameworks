@@ -104,7 +104,7 @@
 				</main>
 			</div>
 		</div>
-		<script src="../../js/register.js" defer></script>
+		
 		<script>
 			function filterTasks() {
 				const searchInput = document.getElementById('search').value.toLowerCase();
