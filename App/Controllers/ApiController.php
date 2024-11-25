@@ -216,7 +216,7 @@ class ApiController extends AbstractController {
 
 		$this->sendResponse([
 			'success' => true,
-			'message' => 'this worked lol ૮ ˶ᵔ ᵕ ᵔ˶ ა',
+			'message' => 'this worked yay',
 		], 200);
 	}
     

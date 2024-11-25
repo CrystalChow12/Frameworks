@@ -6,7 +6,6 @@ use Framework\BaseModel;
 use PDO;
 use PDOException;
 use Exception;
-use Framework\Validator\Validator;
 use Framework\Framework;
 use Datetime;
 
