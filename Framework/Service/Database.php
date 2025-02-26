@@ -7,10 +7,6 @@ use PDOException;
 use Config\Config;
 
 class Database {
-
-
-
-	
 	private string $host = 'localhost';
 	private string $user = 'root';
 	private string $password = 'chowbird';
